@@ -67,6 +67,7 @@ class NewsController: UIViewController, CellSubclassDelegate  {
 //MARK: - Actions
     //pull to refresh action
     @objc private func refresh(sender: UIRefreshControl) {
+        daysCounter = 0
         networkService.setupApiConnection(from: from, to: to) { (result, isConnected) in
             print(result.articles.count)
             let parsed = result.articles
@@ -135,7 +136,7 @@ extension NewsController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         let lastElement = cellsData.count - 1
         
-        if (indexPath.row == lastElement) && (daysCounter < 6) && !isFiltering {
+        if (indexPath.row == lastElement) && (daysCounter < 7) && !isFiltering {
             currentDay = daybefore
             daybefore = Date().getDayBefore(from: currentDay)
             
