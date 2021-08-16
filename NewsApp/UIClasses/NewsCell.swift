@@ -9,7 +9,6 @@ import UIKit
 class NewsCell: UITableViewCell {
     
     //MARK: - Variables
-    private var timer: Timer?
     let gradient = CAGradientLayer()
     let networkService = NetworkService()
     weak var delegate: CellSubclassDelegate?
@@ -27,7 +26,6 @@ class NewsCell: UITableViewCell {
         }
     }
     var isTappedShowMore: Bool = false
-    var descLabel = UILabel(frame: CGRect(x: 0, y: 0, width: 0, height: CGFloat.greatestFiniteMagnitude))
     
     //MARK: - Outlets
     @IBOutlet weak var imageNewsView: UIImageView!
@@ -142,7 +140,6 @@ class NewsCell: UITableViewCell {
     }
     
     func setDescription() {
-        
         let text = article.description?.filter { !"\r\n\n\t\r".contains($0) }
         self.descriptionLabel.text = text
         if descriptionLabel.isTruncated == false {
@@ -150,8 +147,6 @@ class NewsCell: UITableViewCell {
         } else {
             showMoreButton.isHidden = false
         }
-        descLabel.text = text
-        contentView.addSubview(descLabel)
     }
     
     func setTitle() {
