@@ -10,17 +10,17 @@ import ViewAnimator
 
 protocol CellSubclassDelegate: AnyObject {
     func buttonTapped(cell: NewsCell)
- //   func getCurrentCell() -> UITableViewCell
+    //   func getCurrentCell() -> UITableViewCell
 }
 
 class NewsController: UIViewController, CellSubclassDelegate  {
-   
+    
     
     
     @IBOutlet weak var newsTableView: UITableView!
     
-//    var showsMore: [Int: Bool] = [:]
-   static var images: [Int: UIImage] = [:]
+    //    var showsMore: [Int: Bool] = [:]
+    static var images: [Int: UIImage] = [:]
     
     //MARK: - Variables
     private let networkService = NetworkService()
@@ -95,34 +95,34 @@ class NewsController: UIViewController, CellSubclassDelegate  {
     }
     // delegate function for correct work button when cell is reusing
     func buttonTapped(cell: NewsCell) {
-       if cell.isTappedShowMore == false {
-        newsTableView.beginUpdates()
-        if cell.descriptionLabel.numberOfLines >= 3
-        {
-            UILabel.transition(with: cell.descriptionLabel,
-                               duration: 0.8,
-                               options: [.transitionCrossDissolve],
-                               animations: { [weak self] in
-                               }, completion: nil)
-            cell.descriptionLabel.numberOfLines = 0
-            cell.descriptionLabel.lineBreakMode = .byWordWrapping
-            
-            cell.descriptionLabel?.sizeToFit()
-            cell.showMoreButton.setTitle("Show Less", for: .normal)
+        if cell.isTappedShowMore == false {
+            newsTableView.beginUpdates()
+            if cell.descriptionLabel.numberOfLines >= 3
+            {
+                UILabel.transition(with: cell.descriptionLabel,
+                                   duration: 0.8,
+                                   options: [.transitionCrossDissolve],
+                                   animations: { [weak self] in
+                                   }, completion: nil)
+                cell.descriptionLabel.numberOfLines = 0
+                cell.descriptionLabel.lineBreakMode = .byWordWrapping
+                
+                cell.descriptionLabel?.sizeToFit()
+                cell.showMoreButton.setTitle("Show Less", for: .normal)
+            }
+            else {
+                UILabel.transition(with: cell.descriptionLabel,
+                                   duration: 0.5,
+                                   options: [.transitionCrossDissolve, .transitionFlipFromBottom],
+                                   animations: { [weak self] in
+                                   }, completion: nil)
+                
+                //   UILabel.setAnimationsEnabled(false)
+                cell.descriptionLabel.numberOfLines = 3
+                cell.showMoreButton.setTitle("Show More", for: .normal)
+            }
+            newsTableView.endUpdates()
         }
-        else {
-            UILabel.transition(with: cell.descriptionLabel,
-                               duration: 0.5,
-                               options: [.transitionCrossDissolve, .transitionFlipFromBottom],
-                               animations: { [weak self] in
-                               }, completion: nil)
-            
-            //   UILabel.setAnimationsEnabled(false)
-            cell.descriptionLabel.numberOfLines = 3
-            cell.showMoreButton.setTitle("Show More", for: .normal)
-        }
-        newsTableView.endUpdates()
-    }
     }
     
     func hideKeyboardWhenTappedAround() {
@@ -182,7 +182,7 @@ extension NewsController: UITableViewDelegate, UITableViewDataSource {
                         self?.cellsDataArticles.append(contentsOf: articles)
                         guard let articlesData = self?.cellsDataArticles else {return}
                         self?.allArticles = articlesData
-                      //  print (self?.cellsDataArticles.count)
+                        //  print (self?.cellsDataArticles.count)
                         self?.daysCounter += 1
                         //  print("days counter \(self.daysCounter)")
                         //   print("cells data \(self.cellsData.count)")
@@ -195,13 +195,13 @@ extension NewsController: UITableViewDelegate, UITableViewDataSource {
                     #elseif PROD
                     errorDescription = "Something went wrong"
                     #endif
-                    let alert = UIAlertController(title: "Error!", message: error.localizedDescription, preferredStyle: .alert)
+                    let alert = UIAlertController(title: "Error!", message: errorDescription, preferredStyle: .alert)
                     alert.addAction(UIAlertAction(title: "OK", style: .default, handler: .none))
                     self?.present(alert, animated: true, completion: nil)
                 }
             }.resume()
         }
-      
+        
         UITableViewCell.animate (views: [cell],
                                  animations: self.animations, duration: 0.7, options: [.curveEaseIn], completion: {
                                  })
@@ -226,9 +226,9 @@ extension NewsController: UITableViewDelegate, UITableViewDataSource {
         let article = cellsDataArticles[indexPath.row]
         cell.article = article
         
-      
-     //   var img = cell.imageNewsView.image
-     //   NewsController.images.updateValue(img!, forKey: indexPath.row)
+        
+        //   var img = cell.imageNewsView.image
+        //   NewsController.images.updateValue(img!, forKey: indexPath.row)
         
         
         return cell
