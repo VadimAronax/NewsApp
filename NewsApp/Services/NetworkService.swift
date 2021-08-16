@@ -6,6 +6,12 @@
 //
 
 import Foundation
+import UIKit
+
+enum URLError: Error {
+    case noData, decodingError
+    case unknownError
+}
 
 class NetworkService {
     
@@ -30,24 +36,44 @@ class NetworkService {
         return request
     }
     
-    func setupApiConnection(from: String, to: String, completionHandler: @escaping (ArticleListResponse, Bool) -> ()) {
-        var parsed = ArticleListResponse(articles: [])
+    func loadArticlesAndDecode<T: Decodable>(from: String, to: String, decoder: JSONDecoder = JSONDecoder(), completion: @escaping (Result<T, Error>) -> Void) -> URLSessionDataTask {
         let request = self.setupRequest(from: from, to: to)
-        let dataTask = URLSession.shared.dataTask(with: request as URLRequest) { data, response, error in
-            do {
-                if (try JSONSerialization.jsonObject(with: data!, options: [])
-                        as? NSDictionary) != nil {
-                    parsed = try! JSONDecoder().decode(ArticleListResponse.self,from: data!)
-                    print("apiconnection")
-                }
-            } catch let error as NSError {
-                print(error.localizedDescription)
-            }
-            // возвращаем данные в мэйн поток
+        return URLSession.shared.dataTask(with: request as URLRequest) { [weak self] (data, response, error) in
             DispatchQueue.main.async {
-                completionHandler(parsed, false)
+                guard error == nil else {
+                    completion(.failure(error ?? URLError.unknownError))
+                    return
+                }
+                guard let data = data, let _ = response else {
+                    completion(.failure(URLError.noData))
+                    return
+                }
+                guard data == data, error == nil else {
+                    completion(.failure(error ?? URLError.unknownError))
+                    return
+                }
+                do {
+                    var decoded = try decoder.decode(T.self, from: data) as! ArticleListResponse
+                    decoded.articles = decoded.articles.filter {
+                        ($0.title != nil) || ($0.description != nil) || ($0.content != nil) || ($0.description != "")
+                    }
+                    completion(.success(decoded as! T))
+                } catch {
+                    do {
+                        print("parsing error")
+                        let decodedError = try decoder.decode(ErrorResponse.self, from: data)
+                        let error = NSError(domain: "ServerResponse", code: 1, userInfo: [NSLocalizedDescriptionKey: decodedError.message as Any])
+                        completion(.failure(error))
+                    } catch let parsingOfErrorResponseError {
+                        completion(.failure(parsingOfErrorResponseError))
+                    }
+                    
+                }
             }
         }
-        dataTask.resume()
+    }
+    
+    func loadArticlesAndDecode<T: Decodable>(from: String, to: String, with url: URL, decoder: JSONDecoder = JSONDecoder(), completion: @escaping (Result<T, Error>) -> Void) -> URLSessionDataTask {
+        self.loadArticlesAndDecode(from: from, to: to, decoder: decoder, completion: completion)
     }
 }

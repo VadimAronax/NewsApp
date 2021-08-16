@@ -10,12 +10,17 @@ import ViewAnimator
 
 protocol CellSubclassDelegate: AnyObject {
     func buttonTapped(cell: NewsCell)
+ //   func getCurrentCell() -> UITableViewCell
 }
 
 class NewsController: UIViewController, CellSubclassDelegate  {
+   
+    
     
     @IBOutlet weak var newsTableView: UITableView!
     
+//    var showsMore: [Int: Bool] = [:]
+   static var images: [Int: UIImage] = [:]
     
     //MARK: - Variables
     private let networkService = NetworkService()
@@ -26,7 +31,7 @@ class NewsController: UIViewController, CellSubclassDelegate  {
         return refreshControl
     }()
     
-    private let animations = [AnimationType.vector((CGVector(dx: 40, dy: 0))), AnimationType.identity]
+    private let animations = [AnimationType.vector((CGVector(dx: 60, dy: 0))), AnimationType.identity]
     
     private var daysCounter: Int = 0
     private var from = ""
@@ -35,13 +40,14 @@ class NewsController: UIViewController, CellSubclassDelegate  {
     private var daybefore: Date = Date()
     private let dateFormatter = DateFormatter()
     
-    private var cellsData: [Article] = []
-    private var allArticles: [Article] = []
-    private var filtered: [Article] = []
-
+    private var cellsDataArticles: [Article] = []  //actual data articles for cells
+    private var allArticles: [Article] = []   // list of all articles for a week
+    private var filteredBySearchArticles: [Article] = []
+    
     //MARK: - Lifecycle methods
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         setupNewsTableView()
         setupSearchBar()
         hideKeyboardWhenTappedAround()
@@ -51,61 +57,84 @@ class NewsController: UIViewController, CellSubclassDelegate  {
     
     func loadData() {
         daybefore = Date().getDayBefore(from: currentDay)
-         from = dateFormatter.string(from: currentDay)
-         to = dateFormatter.string(from: daybefore)
-        
-        networkService.setupApiConnection(from: from, to: to) { (result, isConnected) in
-            print(result.articles.count)
-            let parsed = result.articles
-            self.cellsData = parsed
-            self.allArticles = parsed
-            DispatchQueue.main.async {
-                self.newsTableView.reloadData()
+        from = dateFormatter.string(from: currentDay)
+        to = dateFormatter.string(from: daybefore)
+        loadArticles()
+    }
+    
+    private func loadArticles() {
+        networkService.loadArticlesAndDecode(from: from, to: to) { [weak self] (result: (Result<ArticleListResponse, Error>))  in
+            switch result {
+            case .success(let articles):
+                let parsed = articles.articles
+                self?.cellsDataArticles = parsed
+                self?.allArticles = parsed
+                DispatchQueue.main.async {
+                    self?.newsTableView.reloadData()
+                }
+                print("Person \(articles.articles.count)")
+            case .failure(let error):
+                let errorDescription:String
+                #if DEVELOP
+                errorDescription = error.localizedDescription
+                #elseif PROD
+                errorDescription = "Something went wrong"
+                #endif
+                let alert = UIAlertController(title: "Error!", message: error.localizedDescription, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default, handler: .none))
+                self?.present(alert, animated: true, completion: nil)
             }
-        }
-     }
-//MARK: - Actions
+        }.resume()
+    }
+    //MARK: - Actions
     //pull to refresh action
     @objc private func refresh(sender: UIRefreshControl) {
         daysCounter = 0
-        networkService.setupApiConnection(from: from, to: to) { (result, isConnected) in
-            print(result.articles.count)
-            let parsed = result.articles
-            self.cellsData = parsed
-            self.allArticles = parsed
-            DispatchQueue.main.async {
-                self.newsTableView.reloadData()
-            }
-        }
+        loadArticles()
         sender.endRefreshing()
     }
     // delegate function for correct work button when cell is reusing
     func buttonTapped(cell: NewsCell) {
+       if cell.isTappedShowMore == false {
         newsTableView.beginUpdates()
-      //  print(cell.descriptionLabel.text)
-      //  print(cell.descriptionLabel.isTruncated)
-       // print(cell.descriptionLabel.numberOfLines)
-        if cell.descriptionLabel.numberOfLines >= 3 {
+        if cell.descriptionLabel.numberOfLines >= 3
+        {
+            UILabel.transition(with: cell.descriptionLabel,
+                               duration: 0.8,
+                               options: [.transitionCrossDissolve],
+                               animations: { [weak self] in
+                               }, completion: nil)
             cell.descriptionLabel.numberOfLines = 0
             cell.descriptionLabel.lineBreakMode = .byWordWrapping
-           
+            
             cell.descriptionLabel?.sizeToFit()
             cell.showMoreButton.setTitle("Show Less", for: .normal)
         }
         else {
+            UILabel.transition(with: cell.descriptionLabel,
+                               duration: 0.5,
+                               options: [.transitionCrossDissolve, .transitionFlipFromBottom],
+                               animations: { [weak self] in
+                               }, completion: nil)
+            
+            //   UILabel.setAnimationsEnabled(false)
             cell.descriptionLabel.numberOfLines = 3
             cell.showMoreButton.setTitle("Show More", for: .normal)
         }
         newsTableView.endUpdates()
     }
+    }
+    
     func hideKeyboardWhenTappedAround() {
-           let tapGesture = UITapGestureRecognizer(target: self,
-                                                   action: #selector(hideKeyboard))
-           view.addGestureRecognizer(tapGesture)
-       }
+        let tapGesture = UITapGestureRecognizer(target: self,
+                                                action: #selector(hideKeyboard))
+        view.addGestureRecognizer(tapGesture)
+    }
+    
     @objc func hideKeyboard() {
         searchController.searchBar.endEditing(true)
-       }
+    }
+    
     // MARK: - UI Setup
     private func setupSearchBar() {
         searchController.searchBar.delegate = self
@@ -126,15 +155,13 @@ class NewsController: UIViewController, CellSubclassDelegate  {
         newsTableView.delegate = self
         newsTableView.refreshControl = self.refreshControl
     }
-  
-    
 }
 // MARK: - UITableViewDataSource, UITableViewDelegate
 extension NewsController: UITableViewDelegate, UITableViewDataSource {
     
     //load additional news at the end of the scroll
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        let lastElement = cellsData.count - 1
+        let lastElement = cellsDataArticles.count - 1
         
         if (indexPath.row == lastElement) && (daysCounter < 7) && !isFiltering {
             currentDay = daybefore
@@ -143,52 +170,77 @@ extension NewsController: UITableViewDelegate, UITableViewDataSource {
             to = dateFormatter.string(from: currentDay)
             from = dateFormatter.string(from: daybefore)
             print("from: \(from) to: \(to)")
-           
-            self.networkService.setupApiConnection(from: from, to: to) { (result, _) in
-                print(result.articles.count)
-                DispatchQueue.main.async {
-                    self.cellsData.append(contentsOf: result.articles)
-                    self.allArticles = self.cellsData
-                    self.daysCounter += 1
-                    print("days counter \(self.daysCounter)")
-                    print("cells data \(self.cellsData.count)")
-                    self.newsTableView.reloadData()
+            
+            self.networkService.loadArticlesAndDecode(from: from, to: to) { [weak self] (result: (Result<ArticleListResponse, Error>))  in
+                
+                switch result {
+                case .success(let articlesList):
+                    DispatchQueue.main.async {
+                        //  guard let articles = result?.articles else {return}
+                        let articles = articlesList.articles
+                        print(articlesList.articles.count)
+                        self?.cellsDataArticles.append(contentsOf: articles)
+                        guard let articlesData = self?.cellsDataArticles else {return}
+                        self?.allArticles = articlesData
+                      //  print (self?.cellsDataArticles.count)
+                        self?.daysCounter += 1
+                        //  print("days counter \(self.daysCounter)")
+                        //   print("cells data \(self.cellsData.count)")
+                        self?.newsTableView.reloadData()
+                    }
+                case .failure(let error):
+                    let errorDescription:String
+                    #if DEVELOP
+                    errorDescription = error.localizedDescription
+                    #elseif PROD
+                    errorDescription = "Something went wrong"
+                    #endif
+                    let alert = UIAlertController(title: "Error!", message: error.localizedDescription, preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default, handler: .none))
+                    self?.present(alert, animated: true, completion: nil)
                 }
-            }
+            }.resume()
         }
+      
         UITableViewCell.animate (views: [cell],
-                                 animations: animations, duration: 0.5, options: [.curveEaseInOut], completion: {
-
-                                   })
+                                 animations: self.animations, duration: 0.7, options: [.curveEaseIn], completion: {
+                                 })
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if isFiltering {
-            return filtered.count
+            return filteredBySearchArticles.count
         }
-        return cellsData.count
+        return cellsDataArticles.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "newsCell2", for: indexPath) as! NewsCell
         cell.delegate = self
+        
         if isFiltering {
-            cellsData = filtered
+            cellsDataArticles = filteredBySearchArticles
         } else {
-            cellsData = allArticles
+            cellsDataArticles = allArticles
         }
-        let article = cellsData[indexPath.row]
+        let article = cellsDataArticles[indexPath.row]
         cell.article = article
+        
+      
+     //   var img = cell.imageNewsView.image
+     //   NewsController.images.updateValue(img!, forKey: indexPath.row)
+        
+        
         return cell
     }
 }
 //MARK: - Search Bar: UISearchResultsUpdating, UISearchBarDelegate
 extension NewsController: UISearchResultsUpdating, UISearchBarDelegate {
     
-   @objc func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-      //  cellsData = parsedArticles
+    @objc func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        //  cellsData = parsedArticles
         DispatchQueue.main.async {
-            self.cellsData = self.allArticles
+            self.cellsDataArticles = self.allArticles
             self.newsTableView.reloadData()
         }
     }
@@ -198,17 +250,19 @@ extension NewsController: UISearchResultsUpdating, UISearchBarDelegate {
         return text.isEmpty
     }
     
-     var isFiltering: Bool {
+    var isFiltering: Bool {
         return searchController.isActive && !searchBarEmpty
     }
     
     func updateSearchResults(for searchController: UISearchController) {
-        filterContentForSearch(_searchText: searchController.searchBar.text!)
+        filterContentForSearch(_searchText: searchController.searchBar.text ?? "")
     }
     
     private func filterContentForSearch(_searchText: String) {
-        filtered = (cellsData.filter({ (article: Article) -> Bool in
-            return  (article.title?.lowercased().contains(_searchText.lowercased()))!
+        filteredBySearchArticles = (cellsDataArticles.filter({ (article: Article) -> Bool in
+            guard let filteredContent = (article.title?.lowercased().contains(_searchText.lowercased())) else {return false}
+            //    return  (article.title?.lowercased().contains(_searchText.lowercased())) ?? ""
+            return filteredContent
         }))
         newsTableView.reloadData()
     }

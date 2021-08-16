@@ -2,68 +2,87 @@
 //  NewsCell.swift
 //  NewsApp
 //
-//  Created by Admin on 30.06.21.
 //
 
 import UIKit
 
 class NewsCell: UITableViewCell {
+    
     //MARK: - Variables
     private var timer: Timer?
     let gradient = CAGradientLayer()
     let networkService = NetworkService()
     weak var delegate: CellSubclassDelegate?
     let dateFormatter = DateFormatter()
-    let serviceData = DataBaseService.shareInstance
+    let serviceData = DataBaseService.sharedInstance
     var article: Article! {
         didSet {
-            setImage()
-            setDescription()
-            setTitle()
-            setPublishedAgo()
-            setTagLabel()
+            DispatchQueue.main.async {
+                self.setImage()
+                self.setDescription()
+                self.setTitle()
+                self.setPublishedAgo()
+                self.setTagLabel()
+            }
         }
     }
+    var isTappedShowMore: Bool = false
+    
     //MARK: - Outlets
+    
     @IBOutlet weak var imageNewsView: UIImageView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var publishedTimeAgoLabel: UILabel!
     @IBOutlet weak var tagLabel: UILabel!
     @IBOutlet weak var showMoreButton: UIButton!
+    @IBOutlet weak var favoritesButton: UIButton!
     @IBOutlet weak var holderForImageView: UIView!
     @IBOutlet weak var descriptionLabel: UILabel!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
+    @IBOutlet weak var titleBackgroundView: UIView!
+    
     //MARK: - Actions
     @IBAction func pressFavButton(_ sender: Any) {
+        //   print (article.description)
         // print (article.publishedAt)
-        if (!serviceData.checkRecordExists(entity: "FavArticles", uniqueIdentity: article.publishedAt!, idAttributeName: "publishedAt")) {
+        guard let publishedAt = article.publishedAt else {return}
+        if (!serviceData.IsRecordExistInEntity(entity: "FavArticles", attribute: "publishedAt", withValue: publishedAt)) {
             serviceData.saveData(article: article)
+            favoritesButton.tintColor = .systemBlue
+        } else {
+            serviceData.deleteDataInEntity(entity: "FavArticles", hasAttribute: "publishedAt", withValue: publishedAt)
+            favoritesButton.tintColor = .systemGray2
         }
     }
     
     @IBAction func showMoreButtonPressed(_ sender: Any) {
         self.delegate?.buttonTapped(cell: self)
     }
-    // stop animate indicator when timer ended
-    @objc func timerAction() {
-        activityIndicator.stopAnimating()
-    }
     
     //MARK: - Superclass methods
     override func prepareForReuse() {
         super.prepareForReuse()
+        
         self.delegate = nil
-        imageNewsView.image = UIImage(named: "placeholder")
+        self.imageNewsView.image = nil
+        
+        self.descriptionLabel.numberOfLines = 3
+        self.showMoreButton.setTitle("Show More", for: .normal)
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
+        
         toWhiteTextThemeColor()
         setGradient()
         setShadowsAndCorners()
         
         self.activityIndicator.hidesWhenStopped = true
+        
+        titleBackgroundView.layer.cornerRadius = 3
+        titleBackgroundView.layer.masksToBounds = true
+        titleBackgroundView.sizeToFit()
         
         tagLabel.layer.cornerRadius = 5
         tagLabel.layer.masksToBounds = true
@@ -100,22 +119,23 @@ class NewsCell: UITableViewCell {
     func setImage() {
         activityIndicator.startAnimating()
         DispatchQueue.global().async {
-            DispatchQueue.main.async {
-                self.timer = Timer.scheduledTimer(timeInterval: 5.0, target: self, selector: #selector(self.timerAction), userInfo: nil, repeats: true)}
-            
             let photoUrl = self.article.urlToImage
-            guard let imageUrl = photoUrl, let url = URL(string: imageUrl) else { return }
-            do {
-                let data = try Data(contentsOf: url)
-                DispatchQueue.main.async {
-                    let downloadedImage = UIImage(data: data)
-                    self.imageNewsView.image = downloadedImage
+            if let imageUrl = photoUrl, let url = URL(string: imageUrl) {
+                do {
+                    let data = try Data(contentsOf: url)
+                    DispatchQueue.main.async { [weak self] in
+                        guard let downloadedImage = UIImage(data: data) else { return }
+                        self?.imageNewsView.image = downloadedImage
+                        self?.imageViewAppearTransition()
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        print("error: set default image")
+                        self.imageNewsView.image = UIImage(named: "placeholder")
+                    }
                 }
-            } catch {
-                DispatchQueue.main.async {
-                    print("error: set default image")
-                    self.imageNewsView.image = UIImage(named: "placeholder")
-                }
+            } else {
+                print("badUrl")
             }
             DispatchQueue.main.sync {
                 self.activityIndicator.stopAnimating()
@@ -137,6 +157,7 @@ class NewsCell: UITableViewCell {
         let title = article.title?.uppercased()
         self.titleLabel.text = title
     }
+    
     func setPublishedAgo() {
         let dateArticle = article.publishedAt
         self.dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
@@ -144,9 +165,19 @@ class NewsCell: UITableViewCell {
         let publishedTimeAgo = date2?.timeAgoSinceDate()
         self.publishedTimeAgoLabel.text = publishedTimeAgo
     }
+    
     func setTagLabel() {
         tagLabel.text = networkService.source.uppercased()
     }
-    
+    //MARK: - Animations and transitions
+    func imageViewAppearTransition () {
+        UIImageView.transition(with: (self.imageNewsView)!,
+                               duration: 1,
+                               options: [.transitionCrossDissolve],
+                               animations: { [weak self] in
+                                self?.imageNewsView.alpha = 0.5
+                                self?.imageNewsView.alpha = 1
+                               }, completion: nil)
+    }
 }
 
