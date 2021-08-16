@@ -36,14 +36,12 @@ class DataBaseService {
         do {
             results = try context.fetch(fetchRequest)
             for result in results {
-                        print(result)
-                        context.delete(result)
-                   }
-        }catch {
+                print(result)
+                context.delete(result)
+            }
+        } catch {
             print("error executing fetch request: \(error)")
         }
-        
-      //  context.delete(articleInstance)
         do {
             try context.save()
             print("Data is deleted")
