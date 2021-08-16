@@ -69,6 +69,7 @@ class NewsCell: UITableViewCell {
         
         self.descriptionLabel.numberOfLines = 3
         self.showMoreButton.setTitle("Show More", for: .normal)
+        self.favoritesButton.tintColor = .systemGray2
     }
     
     override func layoutSubviews() {
@@ -129,7 +130,7 @@ class NewsCell: UITableViewCell {
                         self?.imageViewAppearTransition()
                     }
                 } catch {
-                    DispatchQueue.main.async {
+                    DispatchQueue.main.async { 
                         print("error: set default image")
                         self.imageNewsView.image = UIImage(named: "placeholder")
                     }

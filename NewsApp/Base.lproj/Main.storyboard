@@ -132,7 +132,7 @@
                                                     </constraints>
                                                     <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                                     <color key="tintColor" systemColor="systemOrangeColor"/>
-                                                    <state key="normal" title="Shows more">
+                                                    <state key="normal" title="Show More">
                                                         <color key="titleColor" systemColor="systemBlueColor"/>
                                                     </state>
                                                     <connections>
@@ -368,7 +368,7 @@
                                                     </constraints>
                                                     <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                                     <color key="tintColor" systemColor="systemOrangeColor"/>
-                                                    <state key="normal" title="Shows more">
+                                                    <state key="normal" title="Show More">
                                                         <color key="titleColor" systemColor="systemBlueColor"/>
                                                     </state>
                                                     <connections>
