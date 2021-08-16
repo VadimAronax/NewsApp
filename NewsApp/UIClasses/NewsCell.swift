@@ -27,9 +27,9 @@ class NewsCell: UITableViewCell {
         }
     }
     var isTappedShowMore: Bool = false
+    var descLabel = UILabel(frame: CGRect(x: 0, y: 0, width: 0, height: CGFloat.greatestFiniteMagnitude))
     
     //MARK: - Outlets
-    
     @IBOutlet weak var imageNewsView: UIImageView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var publishedTimeAgoLabel: UILabel!
@@ -39,13 +39,10 @@ class NewsCell: UITableViewCell {
     @IBOutlet weak var holderForImageView: UIView!
     @IBOutlet weak var descriptionLabel: UILabel!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
-    
     @IBOutlet weak var titleBackgroundView: UIView!
     
     //MARK: - Actions
     @IBAction func pressFavButton(_ sender: Any) {
-        //   print (article.description)
-        // print (article.publishedAt)
         guard let publishedAt = article.publishedAt else {return}
         if (!serviceData.IsRecordExistInEntity(entity: "FavArticles", attribute: "publishedAt", withValue: publishedAt)) {
             serviceData.saveData(article: article)
@@ -74,7 +71,7 @@ class NewsCell: UITableViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        
+ 
         toWhiteTextThemeColor()
         setGradient()
         setShadowsAndCorners()
@@ -145,6 +142,7 @@ class NewsCell: UITableViewCell {
     }
     
     func setDescription() {
+        
         let text = article.description?.filter { !"\r\n\n\t\r".contains($0) }
         self.descriptionLabel.text = text
         if descriptionLabel.isTruncated == false {
@@ -152,6 +150,8 @@ class NewsCell: UITableViewCell {
         } else {
             showMoreButton.isHidden = false
         }
+        descLabel.text = text
+        contentView.addSubview(descLabel)
     }
     
     func setTitle() {

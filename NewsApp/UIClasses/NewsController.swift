@@ -15,12 +15,7 @@ protocol CellSubclassDelegate: AnyObject {
 
 class NewsController: UIViewController, CellSubclassDelegate  {
     
-    
-    
     @IBOutlet weak var newsTableView: UITableView!
-    
-    //    var showsMore: [Int: Bool] = [:]
-    static var images: [Int: UIImage] = [:]
     
     //MARK: - Variables
     private let networkService = NetworkService()
@@ -112,7 +107,7 @@ class NewsController: UIViewController, CellSubclassDelegate  {
             }
             else {
                 UILabel.transition(with: cell.descriptionLabel,
-                                   duration: 0.5,
+                                   duration: 0.7,
                                    options: [.transitionCrossDissolve, .transitionFlipFromBottom],
                                    animations: { [weak self] in
                                    }, completion: nil)
@@ -120,6 +115,7 @@ class NewsController: UIViewController, CellSubclassDelegate  {
                 //   UILabel.setAnimationsEnabled(false)
                 cell.descriptionLabel.numberOfLines = 3
                 cell.showMoreButton.setTitle("Show More", for: .normal)
+                cell.descriptionLabel?.sizeToFit()
             }
             newsTableView.endUpdates()
         }
@@ -176,16 +172,12 @@ extension NewsController: UITableViewDelegate, UITableViewDataSource {
                 switch result {
                 case .success(let articlesList):
                     DispatchQueue.main.async {
-                        //  guard let articles = result?.articles else {return}
                         let articles = articlesList.articles
                         print(articlesList.articles.count)
                         self?.cellsDataArticles.append(contentsOf: articles)
                         guard let articlesData = self?.cellsDataArticles else {return}
                         self?.allArticles = articlesData
-                        //  print (self?.cellsDataArticles.count)
                         self?.daysCounter += 1
-                        //  print("days counter \(self.daysCounter)")
-                        //   print("cells data \(self.cellsData.count)")
                         self?.newsTableView.reloadData()
                     }
                 case .failure(let error):
@@ -225,12 +217,7 @@ extension NewsController: UITableViewDelegate, UITableViewDataSource {
         }
         let article = cellsDataArticles[indexPath.row]
         cell.article = article
-        
-        
-        //   var img = cell.imageNewsView.image
-        //   NewsController.images.updateValue(img!, forKey: indexPath.row)
-        
-        
+
         return cell
     }
 }
@@ -259,9 +246,8 @@ extension NewsController: UISearchResultsUpdating, UISearchBarDelegate {
     }
     
     private func filterContentForSearch(_searchText: String) {
-        filteredBySearchArticles = (cellsDataArticles.filter({ (article: Article) -> Bool in
+        filteredBySearchArticles = (cellsDataArticles.filter({ [weak self] (article: Article) -> Bool in
             guard let filteredContent = (article.title?.lowercased().contains(_searchText.lowercased())) else {return false}
-            //    return  (article.title?.lowercased().contains(_searchText.lowercased())) ?? ""
             return filteredContent
         }))
         newsTableView.reloadData()

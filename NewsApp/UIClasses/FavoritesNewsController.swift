@@ -24,32 +24,30 @@ class FavoritesNewsController: UIViewController, CellSubclassDelegate {
     }
     
     func buttonTapped(cell: NewsCell) {
-      //  if cell.isTappedShowMore == false {
-            favNewsTable.beginUpdates()
-            if cell.descriptionLabel.numberOfLines >= 3 {
-                UILabel.transition(with: cell.descriptionLabel,
-                                   duration: 0.8,
-                                   options: [.transitionCrossDissolve],
-                                   animations: { [weak self] in
-                                   }, completion: nil)
-                cell.descriptionLabel.numberOfLines = 0
-                cell.descriptionLabel.lineBreakMode = .byWordWrapping
-                
-                cell.descriptionLabel?.sizeToFit()
-                cell.showMoreButton.setTitle("Show Less", for: .normal)
-            } else {
-                UILabel.transition(with: cell.descriptionLabel,
-                                   duration: 0.5,
-                                   options: [.transitionCrossDissolve, .transitionFlipFromBottom],
-                                   animations: { [weak self] in
-                                   }, completion: nil)
-                
-                //   UILabel.setAnimationsEnabled(false)
-                cell.descriptionLabel.numberOfLines = 3
-                cell.showMoreButton.setTitle("Show More", for: .normal)
-            }
-            favNewsTable.endUpdates()
+        favNewsTable.beginUpdates()
+        // cell.descriptionLabel.translatesAutoresizingMaskIntoConstraints = true
+        if cell.descriptionLabel.numberOfLines >= 3 {
+            UILabel.transition(with: cell.descriptionLabel,
+                               duration: 0.8,
+                               options: [.transitionCrossDissolve],
+                               animations: { [weak self] in
+                               }, completion: nil)
+            cell.descriptionLabel.numberOfLines = 0
+            cell.descriptionLabel.lineBreakMode = .byWordWrapping
+            
+            cell.descriptionLabel?.sizeToFit()
+            cell.showMoreButton.setTitle("Show Less", for: .normal)
+        } else {
+            UILabel.transition(with: cell.descriptionLabel,
+                               duration: 0.5,
+                               options: [.transitionCrossDissolve, .transitionFlipFromBottom],
+                               animations: { [weak self] in
+                               }, completion: nil)
+            cell.descriptionLabel.numberOfLines = 3
+            cell.showMoreButton.setTitle("Show More", for: .normal)
         }
+        favNewsTable.endUpdates()
+    }
 }
 
 //MARK: - Table delegates

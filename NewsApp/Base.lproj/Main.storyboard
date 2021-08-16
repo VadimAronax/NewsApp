@@ -88,7 +88,7 @@
                                                     </constraints>
                                                     <color key="color" red="0.72362649320000005" green="0.1507498786" blue="0.37706171869999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                 </activityIndicatorView>
-                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="GLz-pk-H1P">
+                                                <button opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" horizontalCompressionResistancePriority="751" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="GLz-pk-H1P">
                                                     <rect key="frame" x="192" y="200" width="31" height="29"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="31" id="HVH-gF-jep"/>
@@ -104,7 +104,7 @@
                                                         <action selector="pressFavButton:" destination="RZm-6I-4kW" eventType="touchUpInside" id="Xzy-GD-B26"/>
                                                     </connections>
                                                 </button>
-                                                <label opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="248" verticalCompressionResistancePriority="751" text="Labewdqwdqwdqwdqwdqwdw dqwdqwdq wdqdqwdqwd wd wqdd dwqwdqwd dcw " lineBreakMode="wordWrap" numberOfLines="3" baselineAdjustment="none" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="374" translatesAutoresizingMaskIntoConstraints="NO" id="JLl-ZL-RpB">
+                                                <label opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="252" verticalCompressionResistancePriority="751" text="Labewdqwdqwdqwdqwdqwdw dqwdqwdq wdqdqwdqwd wd wqdd dwqwdqwd dcw " lineBreakMode="wordWrap" numberOfLines="3" baselineAdjustment="none" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="374" translatesAutoresizingMaskIntoConstraints="NO" id="JLl-ZL-RpB">
                                                     <rect key="frame" x="28" y="118.5" width="357" height="61.5"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="20" id="uF9-Ii-6MW"/>
@@ -161,6 +161,7 @@
                                                 <constraint firstItem="Lfa-7u-CIc" firstAttribute="top" secondItem="JLl-ZL-RpB" secondAttribute="bottom" id="Nxb-1z-nDG"/>
                                                 <constraint firstItem="ket-DK-amL" firstAttribute="centerY" secondItem="SUZ-Y8-SOq" secondAttribute="centerY" id="UIc-MW-6zb"/>
                                                 <constraint firstItem="JLl-ZL-RpB" firstAttribute="top" secondItem="S4l-Fi-wDy" secondAttribute="bottom" constant="19.5" id="WqV-xb-FCv"/>
+                                                <constraint firstAttribute="bottom" secondItem="GLz-pk-H1P" secondAttribute="bottom" constant="14" id="X5Y-Ci-DMg"/>
                                                 <constraint firstAttribute="bottom" secondItem="ket-DK-amL" secondAttribute="bottom" constant="17" id="XbX-EG-wUx"/>
                                                 <constraint firstItem="nFV-HK-ZEV" firstAttribute="centerY" secondItem="SUZ-Y8-SOq" secondAttribute="centerY" constant="-0.5" id="XsI-4h-67p"/>
                                                 <constraint firstItem="ket-DK-amL" firstAttribute="top" secondItem="JLl-ZL-RpB" secondAttribute="bottom" constant="26" id="c3t-MH-n0m"/>
