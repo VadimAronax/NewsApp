@@ -10,7 +10,6 @@ import ViewAnimator
 
 protocol CellSubclassDelegate: AnyObject {
     func buttonTapped(cell: NewsCell)
-    //   func getCurrentCell() -> UITableViewCell
 }
 
 class NewsController: UIViewController, CellSubclassDelegate  {
@@ -26,7 +25,7 @@ class NewsController: UIViewController, CellSubclassDelegate  {
         return refreshControl
     }()
     
-    private let animations = [AnimationType.vector((CGVector(dx: 60, dy: 0))), AnimationType.identity]
+    private let animations = [AnimationType.vector((CGVector(dx: 40, dy: 0))), AnimationType.identity]
     
     private var daysCounter: Int = 0
     private var from = ""
@@ -69,15 +68,7 @@ class NewsController: UIViewController, CellSubclassDelegate  {
                 }
                 print("Person \(articles.articles.count)")
             case .failure(let error):
-                let errorDescription:String
-                #if DEVELOP
-                errorDescription = error.localizedDescription
-                #elseif PROD
-                errorDescription = "Something went wrong"
-                #endif
-                let alert = UIAlertController(title: "Error!", message: error.localizedDescription, preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "OK", style: .default, handler: .none))
-                self?.present(alert, animated: true, completion: nil)
+                self?.showErrorAlert(error: error)
             }
         }.resume()
     }
@@ -90,7 +81,6 @@ class NewsController: UIViewController, CellSubclassDelegate  {
     }
     // delegate function for correct work button when cell is reusing
     func buttonTapped(cell: NewsCell) {
-        if cell.isTappedShowMore == false {
             newsTableView.beginUpdates()
             if cell.descriptionLabel.numberOfLines >= 3
             {
@@ -118,7 +108,6 @@ class NewsController: UIViewController, CellSubclassDelegate  {
                 cell.descriptionLabel?.sizeToFit()
             }
             newsTableView.endUpdates()
-        }
     }
     
     func hideKeyboardWhenTappedAround() {
@@ -181,15 +170,7 @@ extension NewsController: UITableViewDelegate, UITableViewDataSource {
                         self?.newsTableView.reloadData()
                     }
                 case .failure(let error):
-                    let errorDescription:String
-                    #if DEVELOP
-                    errorDescription = error.localizedDescription
-                    #elseif PROD
-                    errorDescription = "Something went wrong"
-                    #endif
-                    let alert = UIAlertController(title: "Error!", message: errorDescription, preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: "OK", style: .default, handler: .none))
-                    self?.present(alert, animated: true, completion: nil)
+                    self?.showErrorAlert(error: error)
                 }
             }.resume()
         }
@@ -251,6 +232,18 @@ extension NewsController: UISearchResultsUpdating, UISearchBarDelegate {
             return filteredContent
         }))
         newsTableView.reloadData()
+    }
+    
+    func showErrorAlert(error: Error) {
+        let errorDescription:String
+        #if DEVELOP
+        errorDescription = error.localizedDescription
+        #elseif PROD
+        errorDescription = "Something went wrong"
+        #endif
+        let alert = UIAlertController(title: "Error!", message: errorDescription, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: .none))
+        self.present(alert, animated: true, completion: nil)
     }
     
 }
