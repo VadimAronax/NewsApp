@@ -77,3 +77,25 @@ class NetworkService {
         self.loadArticlesAndDecode(from: from, to: to, decoder: decoder, completion: completion)
     }
 }
+
+extension URLError: LocalizedError {
+    public var errorDescription: String? {
+            switch self {
+            case .unknownError:
+                return NSLocalizedString(
+                    "Unknown error occured.",
+                    comment: "Unknown error."
+                )
+            case .noData:
+                return NSLocalizedString(
+                    "No data recieved.",
+                    comment: "No data"
+                )
+            case .decodingError:
+                return NSLocalizedString(
+                    "Error occured when trying to decode data.",
+                    comment: "Decoding error."
+                )
+            }
+        }
+}

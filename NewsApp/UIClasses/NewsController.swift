@@ -82,6 +82,7 @@ class NewsController: UIViewController, CellSubclassDelegate  {
     // delegate function for correct work button when cell is reusing
     func buttonTapped(cell: NewsCell) {
             newsTableView.beginUpdates()
+      //  cell.descriptionLabel.translatesAutoresizingMaskIntoConstraints = true
             if cell.descriptionLabel.numberOfLines >= 3
             {
                 UILabel.transition(with: cell.descriptionLabel,
@@ -96,13 +97,15 @@ class NewsController: UIViewController, CellSubclassDelegate  {
                 cell.showMoreButton.setTitle("Show Less", for: .normal)
             }
             else {
+                
                 UILabel.transition(with: cell.descriptionLabel,
-                                   duration: 0.7,
+                                   duration: 0.5,
                                    options: [.transitionCrossDissolve, .transitionFlipFromBottom],
                                    animations: { [weak self] in
+                                    cell.contentView.layoutSubviews()
+                                    cell.descriptionLabel.layoutIfNeeded()
                                    }, completion: nil)
-                
-                //   UILabel.setAnimationsEnabled(false)
+
                 cell.descriptionLabel.numberOfLines = 3
                 cell.showMoreButton.setTitle("Show More", for: .normal)
                 cell.descriptionLabel?.sizeToFit()
@@ -157,7 +160,6 @@ extension NewsController: UITableViewDelegate, UITableViewDataSource {
             print("from: \(from) to: \(to)")
             
             self.networkService.loadArticlesAndDecode(from: from, to: to) { [weak self] (result: (Result<ArticleListResponse, Error>))  in
-                
                 switch result {
                 case .success(let articlesList):
                     DispatchQueue.main.async {

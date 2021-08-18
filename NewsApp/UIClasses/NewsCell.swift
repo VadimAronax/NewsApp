@@ -17,11 +17,11 @@ class NewsCell: UITableViewCell {
     var article: Article! {
         didSet {
             DispatchQueue.main.async {
-                self.setImage()
-                self.setDescription()
-                self.setTitle()
-                self.setPublishedAgo()
-                self.setTagLabel()
+                self.downloadAndsetImage()
+                self.setDescriptionLabelText()
+                self.setTitleLabelText()
+                self.setPublishedAgoLabelText()
+                self.setTagLabelText()
             }
         }
     }
@@ -69,16 +69,12 @@ class NewsCell: UITableViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
- 
-        toWhiteTextThemeColor()
-        setGradient()
-        setShadowsAndCorners()
-        
         self.activityIndicator.hidesWhenStopped = true
         
-        titleBackgroundView.layer.cornerRadius = 3
-        titleBackgroundView.layer.masksToBounds = true
-        titleBackgroundView.sizeToFit()
+        toWhiteTextThemeColor()
+        setGradientLayer()
+        setShadowsAndCornersImageView()
+        setTitleBackgroundView()
         
         tagLabel.layer.cornerRadius = 5
         tagLabel.layer.masksToBounds = true
@@ -90,7 +86,7 @@ class NewsCell: UITableViewCell {
         titleLabel.textColor = .white
     }
     
-    private func setShadowsAndCorners() {
+    private func setShadowsAndCornersImageView() {
         imageNewsView.layer.cornerRadius = 12
         imageNewsView.layer.masksToBounds = true;
         
@@ -102,7 +98,7 @@ class NewsCell: UITableViewCell {
         holderForImageView.clipsToBounds  = false
     }
     
-    private func setGradient(){
+    private func setGradientLayer(){
         // gradient.frame = self.contentView.bounds
         // bugfix when gradiend delay from expanding view
         gradient.frame = CGRect(origin: self.contentView.bounds.origin , size: CGSize(width: self.contentView.bounds.width, height: self.contentView.bounds.height + 30))
@@ -112,7 +108,7 @@ class NewsCell: UITableViewCell {
         imageNewsView.layer.insertSublayer(gradient, at: 0)
     }
     //MARK: - Set data to UI
-    func setImage() {
+    func downloadAndsetImage() {
         activityIndicator.startAnimating()
         DispatchQueue.global().async {
             let photoUrl = self.article.urlToImage
@@ -139,7 +135,8 @@ class NewsCell: UITableViewCell {
         }
     }
     
-    func setDescription() {
+    func setDescriptionLabelText() {
+        
         let text = article.description?.filter { !"\r\n\n\t\r".contains($0) }
         self.descriptionLabel.text = text
         if descriptionLabel.isTruncated == false {
@@ -147,14 +144,15 @@ class NewsCell: UITableViewCell {
         } else {
             showMoreButton.isHidden = false
         }
+        descriptionLabel.sizeToFit()
     }
     
-    func setTitle() {
+    func setTitleLabelText() {
         let title = article.title?.uppercased()
         self.titleLabel.text = title
     }
     
-    func setPublishedAgo() {
+    func setPublishedAgoLabelText() {
         let dateArticle = article.publishedAt
         self.dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
         let date2 = dateFormatter.date(from: dateArticle ?? "yyyy-MM-dd")
@@ -162,8 +160,14 @@ class NewsCell: UITableViewCell {
         self.publishedTimeAgoLabel.text = publishedTimeAgo
     }
     
-    func setTagLabel() {
+    func setTagLabelText() {
         tagLabel.text = networkService.source.uppercased()
+    }
+    
+    func setTitleBackgroundView() {
+        titleBackgroundView.layer.cornerRadius = 3
+        titleBackgroundView.layer.masksToBounds = true
+        titleBackgroundView.sizeToFit()
     }
     //MARK: - Animations and transitions
     func imageViewAppearTransition () {
